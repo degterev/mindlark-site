@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "mindlark-site",
+  "compatibility_date": "2026-02-01",
   "assets": {
     "directory": "./"
   }
