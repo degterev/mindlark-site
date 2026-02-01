@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindLark — Meditate & Breathe</title>
+    <meta name="description" content="A simple, beautiful meditation timer with background sounds, progress tracking, Apple Health integration, and iCloud sync. No subscriptions.">
+    <meta property="og:title" content="MindLark — Meditate & Breathe">
+    <meta property="og:description" content="A simple, beautiful meditation timer. No subscriptions.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mindlark.app">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --teal: #2DD4BF;
+            --teal-dark: #0D9488;
+            --teal-deeper: #0F766E;
+            --teal-light: #CCFBF1;
+            --teal-glow: rgba(45, 212, 191, 0.15);
+            --bg: #FAFAFA;
+            --surface: #FFFFFF;
+            --text: #1A1A1A;
+            --text-secondary: #6B7280;
+            --border: #E5E7EB;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0A0A0A;
+                --surface: #141414;
+                --text: #F5F5F5;
+                --text-secondary: #9CA3AF;
+                --border: #222222;
+                --teal-glow: rgba(45, 212, 191, 0.08);
+                --shadow: 0 1px 3px rgba(0,0,0,0.4);
+                --shadow-lg: 0 8px 30px rgba(0,0,0,0.4);
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* --- NAV --- */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            padding: 16px 24px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(250,250,250,0.8);
+            border-bottom: 1px solid var(--border);
+            transition: background 0.3s;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            nav { background: rgba(10,10,10,0.85); }
+        }
+
+        .nav-inner {
+            max-width: 1080px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .nav-logo-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+        }
+
+        .nav-logo-text {
+            font-family: 'DM Serif Display', serif;
+            font-size: 20px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--teal-dark); }
+
+        /* --- HERO --- */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 24px 80px;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--teal-glow) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 640px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--teal-glow);
+            border: 1px solid rgba(45, 212, 191, 0.2);
+            color: var(--teal-dark);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 100px;
+            margin-bottom: 28px;
+            animation: fadeUp 0.8s ease both;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .hero-badge { color: var(--teal); }
+        }
+
+        .hero h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(40px, 7vw, 64px);
+            font-weight: 400;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            animation: fadeUp 0.8s 0.1s ease both;
+        }
+
+        .hero h1 .accent {
+            background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 480px;
+            margin: 0 auto 36px;
+            animation: fadeUp 0.8s 0.2s ease both;
+        }
+
+        .hero-cta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            animation: fadeUp 0.8s 0.3s ease both;
+        }
+
+        .btn-appstore {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--text);
+            color: var(--bg);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 16px 32px;
+            border-radius: 100px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-appstore:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-appstore svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        /* --- BREATHING CIRCLE --- */
+        .breathing-circle {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 48px;
+            position: relative;
+            animation: fadeUp 0.8s 0.05s ease both;
+        }
+
+        .breathing-ring {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid rgba(45, 212, 191, 0.15);
+            position: relative;
+            animation: breathe 6s ease-in-out infinite;
+        }
+
+        .breathing-ring::after {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            border: 2px solid rgba(45, 212, 191, 0.25);
+            animation: breathe 6s 0.3s ease-in-out infinite;
+        }
+
+        .breathing-time {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: var(--teal-dark);
+            font-variant-numeric: tabular-nums;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .breathing-time { color: var(--teal); }
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.06); opacity: 1; }
+        }
+
+        /* --- FEATURES --- */
+        .features {
+            padding: 80px 24px 100px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .features-header h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 12px;
+        }
+
+        .features-header p {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .features-grid { grid-template-columns: 1fr; }
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px 28px;
+            box-shadow: var(--shadow);
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--teal-glow);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* --- SOUND SECTION --- */
+        .sounds {
+            padding: 80px 24px;
+            text-align: center;
+        }
+
+        .sounds-inner {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .sounds h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 12px;
+        }
+
+        .sounds > .sounds-inner > p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+
+        .sound-pills {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .sound-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, border-color 0.2s;
+            cursor: default;
+        }
+
+        .sound-pill:hover {
+            transform: translateY(-2px);
+            border-color: var(--teal);
+        }
+
+        .sound-pill .pill-icon {
+            font-size: 18px;
+        }
+
+        /* --- INTEGRATION --- */
+        .integrations {
+            padding: 80px 24px 100px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .integrations-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .integrations-header h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 12px;
+        }
+
+        .integrations-header p {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .integration-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .integration-cards { grid-template-columns: 1fr; }
+        }
+
+        .integration-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .integration-card .ic-icon {
+            font-size: 36px;
+            margin-bottom: 16px;
+        }
+
+        .integration-card h3 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .integration-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* --- CTA --- */
+        .cta {
+            padding: 80px 24px 100px;
+            text-align: center;
+        }
+
+        .cta-inner {
+            max-width: 560px;
+            margin: 0 auto;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 56px 40px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-inner::before {
+            content: '';
+            position: absolute;
+            top: -60%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--teal-glow) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .cta-inner h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 28px;
+            font-weight: 400;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .cta-inner p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin-bottom: 28px;
+            position: relative;
+        }
+
+        .cta-inner .btn-appstore {
+            position: relative;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            padding: 40px 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-inner {
+            max-width: 1080px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .footer-copy {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover { color: var(--teal-dark); }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">
+                <div class="nav-logo-icon">🍃</div>
+                <div class="nav-logo-text">MindLark</div>
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="support.html">Support</a>
+                <a href="privacy.html">Privacy</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">🍃 No subscriptions. Just calm.</div>
+
+            <div class="breathing-circle">
+                <div class="breathing-ring"></div>
+                <div class="breathing-time">05:00</div>
+            </div>
+
+            <h1>Your space to <span class="accent">breathe</span></h1>
+            <p>A simple, beautiful meditation timer with ambient sounds, progress tracking, and seamless Apple ecosystem integration.</p>
+
+            <div class="hero-cta">
+                <!-- Replace # with actual App Store link -->
+                <a href="#" class="btn-appstore">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                    Download on the App Store
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="features-header reveal">
+            <h2>Everything you need, nothing you don't</h2>
+            <p>Designed to help you build a consistent meditation practice.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card reveal">
+                <div class="feature-icon">⏱</div>
+                <h3>Flexible Timer</h3>
+                <p>1 to 60 minutes — choose the duration that fits your day. A gentle chime signals the end of your session.</p>
+            </div>
+
+            <div class="feature-card reveal">
+                <div class="feature-icon">📊</div>
+                <h3>Progress Tracking</h3>
+                <p>Weekly charts, streaks, insights, and all-time stats. See your practice grow over time.</p>
+            </div>
+
+            <div class="feature-card reveal">
+                <div class="feature-icon">🔔</div>
+                <h3>Smart Reminders</h3>
+                <p>Set multiple reminders for specific days and times. Stay consistent without thinking about it.</p>
+            </div>
+
+            <div class="feature-card reveal">
+                <div class="feature-icon">🎵</div>
+                <h3>Ambient Sounds</h3>
+                <p>Rain forest, ocean waves, forest ambience, or fireplace. Immerse yourself in calming audio.</p>
+            </div>
+
+            <div class="feature-card reveal">
+                <div class="feature-icon">❤️</div>
+                <h3>Apple Health</h3>
+                <p>Meditation sessions are automatically saved as Mindful Minutes in the Health app.</p>
+            </div>
+
+            <div class="feature-card reveal">
+                <div class="feature-icon">☁️</div>
+                <h3>iCloud Sync</h3>
+                <p>Your history and preferences sync seamlessly across all your Apple devices.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="sounds reveal">
+        <div class="sounds-inner">
+            <h2>Find your atmosphere</h2>
+            <p>Choose a background sound to create the perfect environment for your practice.</p>
+
+            <div class="sound-pills">
+                <div class="sound-pill"><span class="pill-icon">🌧</span> Rain Forest</div>
+                <div class="sound-pill"><span class="pill-icon">🌊</span> Ocean Waves</div>
+                <div class="sound-pill"><span class="pill-icon">🌲</span> Forest Ambience</div>
+                <div class="sound-pill"><span class="pill-icon">🔥</span> Fireplace</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="integrations reveal">
+        <div class="integrations-header">
+            <h2>Works with your Apple ecosystem</h2>
+            <p>Built natively for iPhone with deep system integrations.</p>
+        </div>
+
+        <div class="integration-cards">
+            <div class="integration-card">
+                <div class="ic-icon">❤️</div>
+                <h3>HealthKit</h3>
+                <p>Every completed session is saved as Mindful Minutes. Track your wellness journey in one place.</p>
+            </div>
+            <div class="integration-card">
+                <div class="ic-icon">☁️</div>
+                <h3>iCloud</h3>
+                <p>Switch devices without losing progress. Your meditation history follows you everywhere.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta reveal">
+        <div class="cta-inner">
+            <h2>Start your practice today</h2>
+            <p>Free. No account required. No subscriptions.</p>
+            <!-- Replace # with actual App Store link -->
+            <a href="#" class="btn-appstore">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                Download on the App Store
+            </a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-copy">© 2025 Mental Friends. All rights reserved.</div>
+            <div class="footer-links">
+                <a href="support.html">Support</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="mailto:support@mindlark.app">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const reveals = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.15 });
+        reveals.forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>
